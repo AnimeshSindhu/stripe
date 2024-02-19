@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Buy cool new product</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://js.stripe.com/v3/"></script>
+  </head>
+  <body>
+    <section>
+      <div class="product">
+        <img src="C:\Users\Akreman\Desktop/il_fullxfull.3756574995_qku7..webp">
+        <div class="description">
+          {% for x in book_list %}
+            <h2>{{x.name}}</h2>
+            <h2>{{x.price}}</h2>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- HTML template -->
+    <form id="payment-form">
+      <div id="card-element">
+        <!-- Stripe.js will inject the card Element here -->
+      </div>
+      <button id="submit">
+        Pay Now
+      </button>
+    </form>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+      var stripe = Stripe('your_publishable_key');
+      var elements = stripe.elements();
+
+      var cardElement = elements.create('card');
+      cardElement.mount('#card-element');
+
+      var form = document.getElementById('payment-form');
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement
+        }).then(function(result) {
+          if (result.error) {
+            // Handle card errors
+          } else {
+            // Send PaymentMethod ID to your backend
+            fetch('/create_payment_intent/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token if using Django CSRF protection
+              },
+              body: JSON.stringify({
+                amount: 1000,  // Example amount in cents
+                payment_method_id: result.paymentMethod.id
+              })
+            }).then(function(response) {
+              return response.json();
+            }).then(function(data) {
+              // Handle response from backend
+              console.log(data);
+              // Redirect or handle the PaymentIntent client_secret as needed
+            });
+          }
+        });
+      });
+    </script>
+        </section>
+  </body>
+</html>
+
